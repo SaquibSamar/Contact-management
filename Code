@@ -1,0 +1,189 @@
+#include<iostream>
+#include<fstream>
+#include<string>
+using namespace std;
+
+// Class to manage a single contact's information
+class Contact {
+public:
+    string name;
+    string phone;
+    string email;
+    string address;
+
+    // Function to add contact information
+    void addContact() {
+        cout << "Enter Name: ";
+        cin.ignore();
+        getline(cin, name);
+        cout << "Enter Phone Number: ";
+        getline(cin, phone);
+        cout << "Enter Email: ";
+        getline(cin, email);
+        cout << "Enter Address: ";
+        getline(cin, address);
+    }
+
+    // Function to display a single contact
+    void displayContact() {
+        cout << "Name: " << name << endl;
+        cout << "Phone: " << phone << endl;
+        cout << "Email: " << email << endl;
+        cout << "Address: " << address << endl;
+    }
+};
+
+// Class to manage the entire contact book
+class ContactManager {
+private:
+    fstream file;
+public:
+    // Function to add a new contact
+    void addNewContact() {
+        Contact newContact;
+        newContact.addContact();
+
+        file.open("contacts.txt", ios::app);
+        if (file.is_open()) {
+            file << newContact.name << endl;
+            file << newContact.phone << endl;
+            file << newContact.email << endl;
+            file << newContact.address << endl;
+            file.close();
+            cout << "Contact added successfully.\n";
+        } else {
+            cout << "Error opening file.\n";
+        }
+    }
+
+    // Function to display all contacts
+    void displayAllContacts() {
+        Contact contact;
+        file.open("contacts.txt", ios::in);
+        if (file.is_open()) {
+            while (getline(file, contact.name) && 
+                   getline(file, contact.phone) && 
+                   getline(file, contact.email) && 
+                   getline(file, contact.address)) {
+                contact.displayContact();
+                cout << "---------------------\n";
+            }
+            file.close();
+        } else {
+            cout << "Error opening file.\n";
+        }
+    }
+
+    // Function to search for a contact by name
+    void searchContact(string searchName) {
+        Contact contact;
+        bool found = false;
+
+        file.open("contacts.txt", ios::in);
+        if (file.is_open()) {
+            while (getline(file, contact.name) && 
+                   getline(file, contact.phone) && 
+                   getline(file, contact.email) && 
+                   getline(file, contact.address)) {
+                if (contact.name == searchName) {
+                    contact.displayContact();
+                    found = true;
+                    break;
+                }
+            }
+            file.close();
+            if (!found) {
+                cout << "Contact not found.\n";
+            }
+        } else {
+            cout << "Error opening file.\n";
+        }
+    }
+
+    // Function to delete a contact by name
+    void deleteContact(string deleteName) {
+        Contact contact;
+        fstream tempFile;
+        bool found = false;
+
+        file.open("contacts.txt", ios::in);
+        tempFile.open("temp.txt", ios::out);
+        if (file.is_open() && tempFile.is_open()) {
+            while (getline(file, contact.name) && 
+                   getline(file, contact.phone) && 
+                   getline(file, contact.email) && 
+                   getline(file, contact.address)) {
+                if (contact.name != deleteName) {
+                    tempFile << contact.name << endl;
+                    tempFile << contact.phone << endl;
+                    tempFile << contact.email << endl;
+                    tempFile << contact.address << endl;
+                } else {
+                    found = true;
+                }
+            }
+            file.close();
+            tempFile.close();
+            remove("contacts.txt");
+            rename("temp.txt", "contacts.txt");
+
+            if (found) {
+                cout << "Contact deleted successfully.\n";
+            } else {
+                cout << "Contact not found.\n";
+            }
+        } else {
+            cout << "Error opening file.\n";
+        }
+    }
+};
+
+// Function to display the menu and handle user inputs
+void menu() {
+    ContactManager cm;
+    int choice;
+    string searchName, deleteName;
+
+    do {
+        cout << "\nContact Management System\n";
+        cout << "1. Add New Contact\n";
+        cout << "2. Display All Contacts\n";
+        cout << "3. Search Contact\n";
+        cout << "4. Delete Contact\n";
+        cout << "5. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cm.addNewContact();
+                break;
+            case 2:
+                cm.displayAllContacts();
+                break;
+            case 3:
+                cout << "Enter the name to search: ";
+                cin.ignore();
+                getline(cin, searchName);
+                cm.searchContact(searchName);
+                break;
+            case 4:
+                cout << "Enter the name to delete: ";
+                cin.ignore();
+                getline(cin, deleteName);
+                cm.deleteContact(deleteName);
+                break;
+            case 5:
+                cout << "Exiting the system...\n";
+                break;
+            default:
+                cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 5);
+}
+
+// Main function to start the program
+int main() {
+    menu();
+    return 0;
+}
